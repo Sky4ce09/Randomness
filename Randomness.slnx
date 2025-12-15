@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Projektmappenelemente/">
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="Playground/Playground.csproj" />
   <Project Path="Randomness/Randomness.csproj" />
-  <Project Path="Test/Playground.csproj" />
 </Solution>
