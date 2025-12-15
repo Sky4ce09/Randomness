@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Randomness/Randomness.csproj" />
+  <Project Path="Test/Playground.csproj" />
+</Solution>
