@@ -1,5 +1,5 @@
 <Solution>
-  <Folder Name="/Projektmappenelemente/">
+  <Folder Name="/Elements/">
     <File Path="README.md" />
   </Folder>
   <Project Path="Playground/Playground.csproj" />
