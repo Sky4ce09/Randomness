@@ -24,7 +24,7 @@ dotnet add package Randomness
 int value = 100;
 int[] target = new int[20];
 
-var distributor = new ValueDistributor();
+var distributor = new RandomDistributor();
 distributor.Distribute(value, target);
 
 // want to map Random.NextDouble() weights to a different range?

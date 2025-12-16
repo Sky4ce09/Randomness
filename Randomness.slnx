@@ -2,6 +2,7 @@
   <Folder Name="/Elements/">
     <File Path="README.md" />
   </Folder>
+  <Project Path="Examples/Examples.csproj" Id="f22baa66-c8d6-4786-aebd-5651b3ef4f89" />
   <Project Path="Playground/Playground.csproj" />
   <Project Path="Randomness/Randomness.csproj" />
 </Solution>
