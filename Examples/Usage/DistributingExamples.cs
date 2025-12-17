@@ -13,6 +13,7 @@ internal class DistributingExamples
         IWeightDistributionExample();
         CustomImplementerExample();
         TwoDimTensorExample();
+        NegativeWeightsExample();
     }
     static void BasicExample()
     {
@@ -112,6 +113,30 @@ internal class DistributingExamples
                 }
                 Console.WriteLine();
             }
+        }
+        End();
+    }
+    static void NegativeWeightsExample()
+    {
+        Console.WriteLine("Negative weights example with integers");
+
+        int trials = 5;
+        int distributedValue = 15;
+        double lowerBound = -0.5;
+        double upperBound = 1;
+        int[] target = new int[5];
+        IWeightDistributionPolicy policy = new WeightRangeMapping(lowerBound, upperBound);
+
+        Console.WriteLine("\nApplied IWeightDistributionPolicy implementers:");
+        Console.WriteLine(string.Format("WeightRangeMapping({0}, {1})", lowerBound, upperBound));
+
+        Console.WriteLine(string.Format("\nValue: {0} | Spread: {1}", distributedValue, target.Length));
+
+        for (int trial = 0; trial < trials; trial++)
+        {
+            Array.Fill(target, 0);
+            distributor.DistributeApproximate(distributedValue, target, policy);
+            Console.WriteLine(string.Format("Trial {0}: {1}", trial + 1, string.Join(", ", target)));
         }
         End();
     }
