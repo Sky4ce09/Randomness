@@ -16,25 +16,25 @@ internal class DistributingExamples
     }
     static void BasicExample()
     {
-        Console.WriteLine("1D Array example with integers\n");
+        Console.WriteLine("1D Array example with integers");
 
         int trials = 5;
         int distributedValue = 15;
         int[] target = new int[5];
 
-        Console.WriteLine(string.Format("Value: {0} | Spread: {1}", distributedValue, target.Length));
+        Console.WriteLine(string.Format("\nValue: {0} | Spread: {1}", distributedValue, target.Length));
 
         for (int trial = 0; trial < trials; trial++)
         {
             Array.Fill(target, 0);
-            distributor.Distribute(distributedValue, target);
+            distributor.DistributeApproximate(distributedValue, target);
             Console.WriteLine(string.Format("Trial {0}: {1}", trial + 1, string.Join(", ", target)));
         }
         End();
     }
     static void IWeightDistributionExample()
     {
-        Console.WriteLine("IWeightDistributionPolicy example with doubles, mapping weights to a range\n");
+        Console.WriteLine("IWeightDistributionPolicy example with doubles, mapping weights to a range");
 
         int trials = 5;
         double distributedValue = 15.0D;
@@ -43,10 +43,10 @@ internal class DistributingExamples
         double upperBound = 0.7;
         IWeightDistributionPolicy policy = new WeightRangeMapping(lowerBound, upperBound);
 
-        Console.WriteLine(string.Format(
-            "Value: {0} | Spread: {1} | Lower weight bound: {2} | Upper weight bound: {3}",
-            distributedValue, target.Length, lowerBound, upperBound
-            ));
+        Console.WriteLine("\nApplied IWeightDistributionPolicy implementers:");
+        Console.WriteLine(string.Format("WeightRangeMapping({0}, {1})", lowerBound, upperBound));
+
+        Console.WriteLine(string.Format("\nValue: {0} | Spread: {1}", distributedValue, target.Length));
 
         for (int trial = 0; trial < trials; trial++)
         {
@@ -58,7 +58,7 @@ internal class DistributingExamples
     }
     static void CustomImplementerExample()
     {
-        Console.WriteLine("Custom IWeightDistributionPolicy implementer example with doubles, clamping weights to a range\n");
+        Console.WriteLine("Custom IWeightDistributionPolicy implementer example with doubles, clamping weights to a range");
 
         int trials = 5;
         double distributedValue = 15.0D;
@@ -67,10 +67,10 @@ internal class DistributingExamples
         double upperBound = 0.6;
         IWeightDistributionPolicy policy = new WeightClamping(lowerBound, upperBound);
 
-        Console.WriteLine(string.Format(
-            "Value: {0} | Spread: {1} | Lower weight bound: {2} | Upper weight bound: {3}",
-            distributedValue, target.Length, lowerBound, upperBound
-            ));
+        Console.WriteLine("\nApplied IWeightDistributionPolicy implementers:");
+        Console.WriteLine(string.Format("WeightClamping({0}, {1})", lowerBound, upperBound));
+
+        Console.WriteLine(string.Format("\nValue: {0} | Spread: {1}", distributedValue, target.Length));
 
         for (int trial = 0; trial < trials; trial++)
         {
@@ -82,8 +82,7 @@ internal class DistributingExamples
     }
     static void TwoDimTensorExample()
     {
-        Console.WriteLine("\"2D Array\" example with integer\nand a tensor access scaffold over a 1D Array of weights in a custom IWeightDistributionPolicy implementer");
-        Console.WriteLine("biasing weights towards the center of the array\n");
+        Console.WriteLine("\"2D Array\" example with integer and center biasing");
 
         int trials = 2;
         int distributedValue = 20;
@@ -94,16 +93,17 @@ internal class DistributingExamples
         int[] target = new int[width * height];
         IWeightDistributionPolicy[] policies = [new WeightRangeMapping(lowerBound, upperBound), new WeightCenterBiasing2D(width, height)];
 
-        Console.WriteLine(string.Format(
-            "Value: {0} | Spread: {1} | Pre-bias Lower weight bound: {2} | Pre-bias Upper weight bound: {3}",
-            distributedValue, target.Length, lowerBound, upperBound
-            ));
+        Console.WriteLine("\nApplied IWeightDistributionPolicy implementers:");
+        Console.WriteLine(string.Format("WeightRangeMapping({0}, {1})", lowerBound, upperBound));
+        Console.WriteLine("WeightCenterBiasing2D");
+
+        Console.WriteLine(string.Format("\nValue: {0} | Spread: {1}", distributedValue, target.Length));
 
         for (int trial = 0; trial < trials; trial++)
         {
             Console.WriteLine("Trial " + (trial + 1));
             Array.Fill(target, 0);
-            distributor.Distribute(distributedValue, target, policies);
+            distributor.DistributeApproximate(distributedValue, target, policies);
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)

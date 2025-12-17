@@ -18,7 +18,7 @@ dotnet add package Randomness
 
 ### Usage Examples
 
-#### Randomness.Distributing
+#### [Randomness.Distributing](https://github.com/Sky4ce09/Randomness/blob/master/Examples/Usage/DistributingExamples.cs)
 
 ```cs
 int value = 100;
@@ -26,13 +26,6 @@ int[] target = new int[20];
 
 var distributor = new RandomDistributor();
 distributor.Distribute(value, target);
-
-// want to map Random.NextDouble() weights to a different range?
-double minWeight = double.E;
-double maxWeight = double.Pi;
-distributor.Distribute(value, target, new WeightRangeMapping(minWeight, maxWeight));
-
-// have your own user-defined type implement IWeightDistributionPolicy for custom behavior!
 ```
 
 ### Authors
@@ -41,4 +34,4 @@ Sky4ce09
 
 ### Links
 
-GitHub: https://github.com/Sky4ce09/Randomness
+[GitHub](https://github.com/Sky4ce09/Randomness)

@@ -4,17 +4,17 @@ namespace Randomness.Distributing;
 
 /// <summary>
 /// Represents a randomizer that distributes a number value across multiple elements of an array using weighted distribution. <para/>
-/// This builds on top of .NET's System.<see cref="System.Random"/> class and utilizes it to generate statistically random weight distributions.
+/// This builds on top of .NET's System.<see cref="System.Random"/> and utilizes it to generate statistically random weight distributions.
 /// </summary>
 public class RandomDistributor
 {
     /// <summary>
-    /// The System.<see cref="System.Random"/> object utilized by the <see cref="RandomDistributor"/> object.
+    /// The System.<see cref="System.Random"/> utilized by the <see cref="RandomDistributor"/> object.
     /// </summary>
     public Random Random { get; set; }
 
     /// <summary>
-    /// Initializes a new <see cref="RandomDistributor"/> object with a provided System.<see cref="System.Random"/> object.
+    /// Initializes a new <see cref="RandomDistributor"/> with a provided System.<see cref="System.Random"/> object.
     /// </summary>
     /// <param name="random">The System.<see cref="System.Random"/> object to be provided.</param>
     public RandomDistributor(Random random)
@@ -23,28 +23,22 @@ public class RandomDistributor
     }
 
     /// <summary>
-    /// Initializes a new <see cref="RandomDistributor"/> object with a new System.<see cref="System.Random"/> instance.
+    /// Initializes a new <see cref="RandomDistributor"/> with a new System.<see cref="System.Random"/> instance.
     /// </summary>
     public RandomDistributor() : this(new Random()) { }
 
     /// <summary>
-    /// Distributes the specified <paramref name="value"/> across the <paramref name="target"/> array randomly. <para/>
-    /// The randomness is optionally tuned by any provided <see cref="IWeightDistributionPolicy"/> implementers. <para/>
-    /// Throws an <see cref="ArgumentException"/> if <paramref name="target"/> has no elements.
+    /// Distributes an integer <paramref name="value"/> across <paramref name="target"/> precisely, leaving no remainder. <para/>
+    /// Throws an <see cref="ArgumentException"/> if the target span is empty.
     /// </summary>
-    /// <param name="value">The amount of units to be distributed.</param>
-    /// <param name="target">The array to receive the distributed value.</param>
-    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be used. (optional)</param>
-    /// <exception cref="ArgumentException">
-    /// Thrown when the target array has no elements.
-    /// </exception>
-    /// <remarks>
-    /// This method mutates <paramref name="target"/> in place.
-    /// </remarks>
+    /// <param name="value">The value to be distributed.</param>
+    /// <param name="target">The target memory span.</param>
+    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be applied.</param>
+    /// <exception cref="ArgumentException"></exception>
     public void Distribute(int value, Span<int> target, params IWeightDistributionPolicy[] weightModifiers)
     {
         // reject elementless arrays
-        if (target.Length < 1) throw new ArgumentException("Target array must have a length of at least one.");
+        if (target.Length < 1) throw new ArgumentException("Target span must have a length of at least one.");
 
         // generate random weights
         Span<double> weights = target.Length <= 256 ? stackalloc double[target.Length] : new double[target.Length];
@@ -72,43 +66,112 @@ public class RandomDistributor
         }
     }
 
+    /// <summary>
+    /// Distributes an integer <paramref name="value"/> across <paramref name="target"/> precisely, leaving no remainder. <para/>
+    /// Throws an <see cref="ArgumentException"/> if the target array is empty.
+    /// </summary>
+    /// <param name="value">The value to be distributed.</param>
+    /// <param name="target">The target array.</param>
+    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be applied.</param>
+    /// <exception cref="ArgumentException"></exception>
     public void Distribute(int value, int[] target, params IWeightDistributionPolicy[] weightModifiers)
     {
         Distribute(value, (Span<int>)target, weightModifiers);
     }
 
     /// <summary>
-    /// Distributes the specified <paramref name="value"/> across a new array of length <paramref name="spread"/> randomly. <para/>
-    /// The randomness is optionally tuned by any provided <see cref="IWeightDistributionPolicy"/> implementers.
+    /// Distributes an integer <paramref name="value"/> across a new array of length <paramref name="spread"/> precisely, leaving no remainder. <para/>
+    /// Throws an <see cref="ArgumentOutOfRangeException"/> if spread is less than 1.
     /// </summary>
-    /// <param name="value">The amount of units to be distributed.</param>
-    /// <param name="spread">The amount of number elements to receive the distributed value.</param>
-    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be used. (optional)</param>
+    /// <param name="value">The value to be distributed.</param>
+    /// <param name="spread">The length of the new array.</param>
+    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be applied.</param>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
     public int[] Distribute(int value, int spread, params IWeightDistributionPolicy[] weightModifiers)
     {
+        if (spread < 1) throw new ArgumentOutOfRangeException(nameof(spread));
         int[] target = new int[spread];
         Distribute(value, target, weightModifiers);
         return target;
     }
+    
+     /// <summary>
+     /// Distributes an integer <paramref name="value"/> across <paramref name="target"/> using weighted proportions and per-element rounding.
+     /// </summary>
+     /// <remarks>
+     /// This method doesn't guarantee that the sum of distributed values equals <paramref name="value"/>.
+     /// Each element is rounded independently, which may introduce a cumulative rounding error. <para/>
+     /// Use <see cref="Distribute"/> when exact conservation of the input value is required.
+     /// </remarks>
+     /// <param name="value">The value to be distributed.</param>
+     /// <param name="target">The target memory span.</param>
+     /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be applied.</param>
+     /// <exception cref="ArgumentException"></exception>
+    public void DistributeApproximate(int value, Span<int> target, params IWeightDistributionPolicy[] weightModifiers)
+    {
+        // reject elementless arrays
+        if (target.Length < 1) throw new ArgumentException("Target span must have a length of at least one.");
+
+        // generate random weights
+        Span<double> weights = target.Length <= 256 ? stackalloc double[target.Length] : new double[target.Length];
+        GenerateWeights(weights, weightModifiers, out double weightSum);
+
+        double doubleValue = Convert.ToDouble(value);
+        for (int i = 0; i < weights.Length; i++)
+        {
+            target[i] += (int)Math.Round(doubleValue * weights[i] / weightSum);
+        }
+    }
 
     /// <summary>
-    /// Distributes the specified <paramref name="value"/> across the <paramref name="target"/> array randomly. <para/>
-    /// The randomness is optionally tuned by any provided <see cref="IWeightDistributionPolicy"/> implementers. <para/>
-    /// Throws an <see cref="ArgumentException"/> if <paramref name="target"/> has no elements.
+    /// Distributes an integer <paramref name="value"/> across <paramref name="target"/> using weighted proportions and per-element rounding.
     /// </summary>
-    /// <param name="value">The amount of units to be distributed.</param>
-    /// <param name="target">The array to receive the distributed value.</param>
-    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be used. (optional)</param>
-    /// <exception cref="ArgumentException">
-    /// Thrown when the target array has no elements.
-    /// </exception>
     /// <remarks>
-    /// This method mutates <paramref name="target"/> in place.
+    /// This method doesn't guarantee that the sum of distributed values equals <paramref name="value"/>.
+    /// Each element is rounded independently, which may introduce a cumulative rounding error. <para/>
+    /// Use <see cref="Distribute"/> when exact conservation of the input value is required.
     /// </remarks>
+    /// <param name="value">The value to be distributed.</param>
+    /// <param name="target">The target array.</param>
+    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be applied.</param>
+    /// <exception cref="ArgumentException"></exception>
+    public void DistributeApproximate(int value, int[] target, params IWeightDistributionPolicy[] weightModifiers)
+    {
+        DistributeApproximate(value, (Span<int>)target, weightModifiers);
+    }
+
+    /// <summary>
+    /// Distributes an integer <paramref name="value"/> across  a new array of length <paramref name="spread"/> using weighted proportions and per-element rounding.
+    /// </summary>
+    /// <remarks>
+    /// This method doesn't guarantee that the sum of distributed values equals <paramref name="value"/>.
+    /// Each element is rounded independently, which may introduce a cumulative rounding error. <para/>
+    /// Use <see cref="Distribute"/> when exact conservation of the input value is required.
+    /// </remarks>
+    /// <param name="value">The value to be distributed.</param>
+    /// <param name="spread">The length of the new array.</param>
+    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be applied.</param>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    public int[] DistributeApproximate(int value, int spread, params IWeightDistributionPolicy[] weightModifiers)
+    {
+        if (spread < 1) throw new ArgumentOutOfRangeException(nameof(spread));
+        int[] target = new int[spread];
+        DistributeApproximate(value, target, weightModifiers);
+        return target;
+    }
+
+    /// <summary>
+    /// Distributes a long <paramref name="value"/> across <paramref name="target"/> precisely, leaving no remainder. <para/>
+    /// Throws an <see cref="ArgumentException"/> if the target span is empty.
+    /// </summary>
+    /// <param name="value">The value to be distributed.</param>
+    /// <param name="target">The target memory span.</param>
+    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be applied.</param>
+    /// <exception cref="ArgumentException"></exception>
     public void Distribute(long value, Span<long> target, params IWeightDistributionPolicy[] weightModifiers)
     {
         // reject elementless arrays
-        if (target.Length < 1) throw new ArgumentException("Target array must have a length of at least one.");
+        if (target.Length < 1) throw new ArgumentException("Target span must have a length of at least one.");
 
         // generate random weights
         Span<double> weights = target.Length <= 256 ? stackalloc double[target.Length] : new double[target.Length];
@@ -136,18 +199,27 @@ public class RandomDistributor
         }
     }
 
+    /// <summary>
+    /// Distributes a long <paramref name="value"/> across <paramref name="target"/> precisely, leaving no remainder. <para/>
+    /// Throws an <see cref="ArgumentException"/> if the target array is empty.
+    /// </summary>
+    /// <param name="value">The value to be distributed.</param>
+    /// <param name="target">The target array.</param>
+    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be applied.</param>
+    /// <exception cref="ArgumentException"></exception>
     public void Distribute(long value, long[] target, params IWeightDistributionPolicy[] weightModifiers)
     {
         Distribute(value, (Span<long>)target, weightModifiers);
     }
 
     /// <summary>
-    /// Distributes the specified <paramref name="value"/> across a new array of length <paramref name="spread"/> randomly. <para/>
-    /// The randomness is optionally tuned by any provided <see cref="IWeightDistributionPolicy"/> implementers.
+    /// Distributes a long <paramref name="value"/> across a new array of length <paramref name="spread"/> precisely, leaving no remainder. <para/>
+    /// Throws an <see cref="ArgumentOutOfRangeException"/> if spread is less than 1.
     /// </summary>
-    /// <param name="value">The amount of units to be distributed.</param>
-    /// <param name="spread">The amount of number elements to receive the distributed value.</param>
-    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be used. (optional)</param>
+    /// <param name="value">The value to be distributed.</param>
+    /// <param name="spread">The length of the new array.</param>
+    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be applied.</param>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
     public long[] Distribute(long value, int spread, params IWeightDistributionPolicy[] weightModifiers)
     {
         long[] target = new long[spread];
@@ -156,47 +228,121 @@ public class RandomDistributor
     }
 
     /// <summary>
-    /// Distributes the specified <paramref name="value"/> across the <paramref name="target"/> array randomly. <para/>
-    /// The randomness is optionally tuned by any provided <see cref="IWeightDistributionPolicy"/> implementers.
-    /// Throws an <see cref="ArgumentException"/> if <paramref name="target"/> has no elements.
+    /// Distributes a long <paramref name="value"/> across <paramref name="target"/> using weighted proportions and per-element rounding.
     /// </summary>
-    /// <param name="value">The amount of units to be distributed.</param>
-    /// <param name="target">The array to receive the distributed value.</param>
-    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be used. (optional)</param>
-    /// <exception cref="ArgumentException">
-    /// Thrown when the target array has no elements.
-    /// </exception>
     /// <remarks>
-    /// This method mutates <paramref name="target"/> in place.
+    /// This method doesn't guarantee that the sum of distributed values equals <paramref name="value"/>.
+    /// Each element is rounded independently, which may introduce a cumulative rounding error. <para/>
+    /// Use <see cref="Distribute"/> when exact conservation of the input value is required.
     /// </remarks>
-    public void Distribute(double value, Span<double> target, params IWeightDistributionPolicy[] weightModifiers)
+    /// <param name="value">The value to be distributed.</param>
+    /// <param name="target">The target memory span.</param>
+    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be applied.</param>
+    /// <exception cref="ArgumentException"></exception>
+    public void DistributeApproximate(long value, Span<long> target, params IWeightDistributionPolicy[] weightModifiers)
     {
         // reject elementless arrays
-        if (target.Length < 1) throw new ArgumentException("Target array must have a length of at least one.");
+        if (target.Length < 1) throw new ArgumentException("Target span must have a length of at least one.");
 
         // generate random weights
         Span<double> weights = target.Length <= 256 ? stackalloc double[target.Length] : new double[target.Length];
         GenerateWeights(weights, weightModifiers, out double weightSum);
 
         // distribute value
+        double doubleValue = Convert.ToDouble(value);
         for (int i = 0; i < weights.Length; i++)
         {
-            target[i] += value * weights[i] / weightSum;
+            target[i] += (long)Math.Round(doubleValue * weights[i] / weightSum);
         }
     }
 
+    /// <summary>
+    /// Distributes a long <paramref name="value"/> across <paramref name="target"/> using weighted proportions and per-element rounding.
+    /// </summary>
+    /// <remarks>
+    /// This method doesn't guarantee that the sum of distributed values equals <paramref name="value"/>.
+    /// Each element is rounded independently, which may introduce a cumulative rounding error. <para/>
+    /// Use <see cref="Distribute"/> when exact conservation of the input value is required.
+    /// </remarks>
+    /// <param name="value">The value to be distributed.</param>
+    /// <param name="target">The target array.</param>
+    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be applied.</param>
+    /// <exception cref="ArgumentException"></exception>
+    public void DistributeApproximate(long value, long[] target, params IWeightDistributionPolicy[] weightModifiers)
+    {
+        DistributeApproximate(value, (Span<long>)target, weightModifiers);
+    }
+
+    /// <summary>
+    /// Distributes a long <paramref name="value"/> across a new array of length <paramref name="spread"/> using weighted proportions and per-element rounding.
+    /// </summary>
+    /// <remarks>
+    /// This method doesn't guarantee that the sum of distributed values equals <paramref name="value"/>.
+    /// Each element is rounded independently, which may introduce a cumulative rounding error. <para/>
+    /// Use <see cref="Distribute"/> when exact conservation of the input value is required.
+    /// </remarks>
+    /// <param name="value">The value to be distributed.</param>
+    /// <param name="spread">The length of the new array.</param>
+    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be applied.</param>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    public long[] DistributeApproximate(long value, int spread, params IWeightDistributionPolicy[] weightModifiers)
+    {
+        long[] target = new long[spread];
+        DistributeApproximate(value, target, weightModifiers);
+        return target;
+    }
+
+    /// <summary>
+    /// Distributes a double <paramref name="value"/> across <paramref name="target"/>. <para/>
+    /// Throws an <see cref="ArgumentException"/> if the target span is empty.
+    /// </summary>
+    /// <param name="value">The value to be distributed.</param>
+    /// <param name="target">The target memory span.</param>
+    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be applied.</param>
+    /// <exception cref="ArgumentException"></exception>
+    public void Distribute(double value, Span<double> target, params IWeightDistributionPolicy[] weightModifiers)
+    {
+        // reject elementless arrays
+        if (target.Length < 1) throw new ArgumentException("Target span must have a length of at least one.");
+
+        // generate random weights
+        Span<double> weights = target.Length <= 256 ? stackalloc double[target.Length] : new double[target.Length];
+        GenerateWeights(weights, weightModifiers, out double weightSum);
+
+        // distribute value
+        double distributed = 0;
+        for (int i = 0; i < weights.Length; i++)
+        {
+            double share = value * weights[i] / weightSum;
+            target[i] += share;
+            distributed += share;
+        }
+
+        // mitigate rounding errors
+        target[Random.Next(0, target.Length)] += value - distributed;
+    }
+
+    /// <summary>
+    /// Distributes a double <paramref name="value"/> across <paramref name="target"/>. <para/>
+    /// Throws an <see cref="ArgumentException"/> if the target array is empty.
+    /// </summary>
+    /// <param name="value">The value to be distributed.</param>
+    /// <param name="target">The target array.</param>
+    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be applied.</param>
+    /// <exception cref="ArgumentException"></exception>
     public void Distribute(double value, double[] target, params IWeightDistributionPolicy[] weightModifiers)
     {
         Distribute(value, (Span<double>)target, weightModifiers);
     }
 
     /// <summary>
-    /// Distributes the specified <paramref name="value"/> across a new array of length <paramref name="spread"/> randomly. <para/>
-    /// The randomness is optionally tuned by any provided <see cref="IWeightDistributionPolicy"/> implementers.
+    /// Distributes a double <paramref name="value"/> across a new array of length <paramref name="spread"/>. <para/>
+    /// Throws an <see cref="ArgumentOutOfRangeException"/> if spread is less than 1.
     /// </summary>
-    /// <param name="value">The amount of units to be distributed.</param>
-    /// <param name="spread">The amount of number elements to receive the distributed value.</param>
-    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be used. (optional)</param>
+    /// <param name="value">The value to be distributed.</param>
+    /// <param name="spread">The length of the new array.</param>
+    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be applied.</param>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
     public double[] Distribute(double value, int spread, params IWeightDistributionPolicy[] weightModifiers)
     {
         double[] target = new double[spread];
@@ -205,47 +351,56 @@ public class RandomDistributor
     }
 
     /// <summary>
-    /// Distributes the specified <paramref name="value"/> across the <paramref name="target"/> array randomly. <para/>
-    /// The randomness is optionally tuned by any provided <see cref="IWeightDistributionPolicy"/> implementers. <para/>
-    /// Throws an <see cref="ArgumentException"/> if <paramref name="target"/> has no elements.
+    /// Distributes a decimal <paramref name="value"/> across <paramref name="target"/>. <para/>
+    /// Throws an <see cref="ArgumentException"/> if the target span is empty.
     /// </summary>
-    /// <param name="value">The amount of units to be distributed.</param>
-    /// <param name="target">The array to receive the distributed value.</param>
-    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be used. (optional)</param>
-    /// <exception cref="ArgumentException">
-    /// Thrown when the target array has no elements.
-    /// </exception>
-    /// <remarks>
-    /// This method mutates <paramref name="target"/> in place.
-    /// </remarks>
+    /// <param name="value">The value to be distributed.</param>
+    /// <param name="target">The target memory span.</param>
+    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be applied.</param>
+    /// <exception cref="ArgumentException"></exception>
     public void Distribute(decimal value, Span<decimal> target, params IWeightDistributionPolicy[] weightModifiers)
     {
         // reject elementless arrays
-        if (target.Length < 1) throw new ArgumentException("Target array must have a length of at least one.");
+        if (target.Length < 1) throw new ArgumentException("Target span must have a length of at least one.");
 
         // generate random weights
         Span<double> weights = target.Length <= 256 ? stackalloc double[target.Length] : new double[target.Length];
         GenerateWeights(weights, weightModifiers, out double weightSum);
 
         // distribute value
+        decimal distributed = 0;
         for (int i = 0; i < weights.Length; i++)
         {
-            target[i] += value * (decimal)weights[i] / (decimal)weightSum;
+            decimal share = value * (decimal)weights[i] / (decimal)weightSum;
+            target[i] += share;
+            distributed += share;
         }
+
+        // mitigate rounding errors
+        target[Random.Next(0, target.Length)] += value - distributed;
     }
 
+    /// <summary>
+    /// Distributes a decimal <paramref name="value"/> across <paramref name="target"/>. <para/>
+    /// Throws an <see cref="ArgumentException"/> if the target array is empty.
+    /// </summary>
+    /// <param name="value">The value to be distributed.</param>
+    /// <param name="target">The target array.</param>
+    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be applied.</param>
+    /// <exception cref="ArgumentException"></exception>
     public void Distribute(decimal value, decimal[] target, params IWeightDistributionPolicy[] weightModifiers)
     {
         Distribute(value, (Span<decimal>)target, weightModifiers);
     }
 
     /// <summary>
-    /// Distributes the specified <paramref name="value"/> across a new array of length <paramref name="spread"/> randomly. <para/>
-    /// The randomness is optionally tuned by any provided <see cref="IWeightDistributionPolicy"/> implementers.
+    /// Distributes a decimal <paramref name="value"/> across a new array of length <paramref name="spread"/>. <para/>
+    /// Throws an <see cref="ArgumentOutOfRangeException"/> if spread is less than 1.
     /// </summary>
-    /// <param name="value">The amount of units to be distributed.</param>
-    /// <param name="spread">The amount of number elements to receive the distributed value.</param>
-    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be used. (optional)</param>
+    /// <param name="value">The value to be distributed.</param>
+    /// <param name="spread">The length of the new array.</param>
+    /// <param name="weightModifiers">The <see cref="IWeightDistributionPolicy"/> implementers to be applied.</param>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
     public decimal[] Distribute(decimal value, int spread, params IWeightDistributionPolicy[] weightModifiers)
     {
         decimal[] target = new decimal[spread];

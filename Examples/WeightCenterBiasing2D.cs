@@ -10,7 +10,6 @@ public readonly struct WeightCenterBiasing2D : IWeightDistributionPolicy
     public readonly void ApplyTo(Span<double> weights)
     {
         // this will error with inaccurate dimension configurations so please keep that in mind when ripping from this snippet
-        TensorAccessScaffold<double> scaffold = new(weights, _dimensions, false);
         int width = _dimensions[0];
         int height = _dimensions[1];
         double centerX = (width - 1) * 0.5;
@@ -18,6 +17,7 @@ public readonly struct WeightCenterBiasing2D : IWeightDistributionPolicy
 
         double radius = Math.Sqrt(centerX * centerX + centerY * centerY);
 
+        int weightIndex = 0;
         for (int y = 0; y < height; y++)
         {
             double deltaY = y - centerY;
@@ -30,7 +30,8 @@ public readonly struct WeightCenterBiasing2D : IWeightDistributionPolicy
                 double linearFalloff = 1.0 - dist / radius;
                 double scale = Math.Max(0, linearFalloff * linearFalloff);
 
-                scaffold[x, y] *= scale;
+                weights[weightIndex] *= scale;
+                weightIndex++;
             }
         }
     }
