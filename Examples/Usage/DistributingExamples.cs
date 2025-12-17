@@ -40,12 +40,12 @@ internal class DistributingExamples
         int trials = 5;
         double distributedValue = 15.0D;
         double[] target = new double[5];
-        double lowerBound = 0.3;
-        double upperBound = 0.7;
-        IWeightDistributionPolicy policy = new WeightRangeMapping(lowerBound, upperBound);
+        double toLowerBound = 0.3;
+        double toUpperBound = 0.7;
+        IWeightDistributionPolicy policy = new WeightRangeMapping(fromLowerBound: 0, fromUpperBound: 1, toLowerBound, toUpperBound);
 
         Console.WriteLine("\nApplied IWeightDistributionPolicy implementers:");
-        Console.WriteLine(string.Format("WeightRangeMapping({0}, {1})", lowerBound, upperBound));
+        Console.WriteLine(string.Format("WeightRangeMapping({0}, {1})", toLowerBound, toUpperBound));
 
         Console.WriteLine(string.Format("\nValue: {0} | Spread: {1}", distributedValue, target.Length));
 
@@ -89,13 +89,13 @@ internal class DistributingExamples
         int distributedValue = 20;
         int width = 7;
         int height = 7;
-        double lowerBound = 0.6;
-        double upperBound = 1;
+        double toLowerBound = 0.6;
+        double toUpperBound = 1;
         int[] target = new int[width * height];
-        IWeightDistributionPolicy[] policies = [new WeightRangeMapping(lowerBound, upperBound), new WeightCenterBiasing2D(width, height)];
+        IWeightDistributionPolicy[] policies = [new WeightRangeMapping(fromLowerBound: 0, fromUpperBound: 1, toLowerBound, toUpperBound), new WeightCenterBiasing2D(width, height)];
 
         Console.WriteLine("\nApplied IWeightDistributionPolicy implementers:");
-        Console.WriteLine(string.Format("WeightRangeMapping({0}, {1})", lowerBound, upperBound));
+        Console.WriteLine(string.Format("WeightRangeMapping({0}, {1})", toLowerBound, toUpperBound));
         Console.WriteLine("WeightCenterBiasing2D");
 
         Console.WriteLine(string.Format("\nValue: {0} | Spread: {1}", distributedValue, target.Length));
@@ -122,13 +122,13 @@ internal class DistributingExamples
 
         int trials = 5;
         int distributedValue = 15;
-        double lowerBound = -0.5;
-        double upperBound = 1;
+        double toLowerBound = -0.5;
+        double toUpperBound = 1;
         int[] target = new int[5];
-        IWeightDistributionPolicy policy = new WeightRangeMapping(lowerBound, upperBound);
+        IWeightDistributionPolicy policy = new WeightRangeMapping(fromLowerBound: 0, fromUpperBound: 1, toLowerBound, toUpperBound);
 
         Console.WriteLine("\nApplied IWeightDistributionPolicy implementers:");
-        Console.WriteLine(string.Format("WeightRangeMapping({0}, {1})", lowerBound, upperBound));
+        Console.WriteLine(string.Format("WeightRangeMapping({0}, {1})", toLowerBound, toUpperBound));
 
         Console.WriteLine(string.Format("\nValue: {0} | Spread: {1}", distributedValue, target.Length));
 

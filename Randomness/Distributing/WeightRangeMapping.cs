@@ -1,37 +1,65 @@
 ﻿namespace Randomness.Distributing;
 
 /// <summary>
-/// An exemplary <see cref="IWeightDistributionPolicy"/> implementer that linearly maps generated weights onto the range [<see cref="LowerBound"/>, <see cref="UpperBound"/>).
+/// An exemplary <see cref="IWeightDistributionPolicy"/> implementer that linearly maps generated weights onto the range [<see cref="ToLowerBound"/>, <see cref="ToUpperBound"/>).
 /// </summary>
 public struct WeightRangeMapping : IWeightDistributionPolicy
 {
-    public double LowerBound { get; set; }
-    public double UpperBound { get; set; }
+    public double ToLowerBound { get; set; }
+    public double ToUpperBound { get; set; }
+    public double FromLowerBound { get; set; }
+    public double FromUpperBound { get; set; }
 
     /// <summary>
-    /// Initializes a <see cref="WeightRangeMapping"/> with the range [0, 1).
+    /// Initializes a <see cref="WeightRangeMapping"/> with the source and target ranges [0, 1). <para/>
+    /// It is strongly recommended that the four-parameter constructor is used instead.
     /// </summary>
     public WeightRangeMapping()
     {
-        LowerBound = 0;
-        UpperBound = 1;
+        FromLowerBound = 0;
+        FromUpperBound = 1;
+        ToLowerBound = 0;
+        ToUpperBound = 1;
     }
 
     /// <summary>
-    /// Initializes a <see cref="WeightRangeMapping"/> with the range [<paramref name="lowerBound"/>, <paramref name="upperBound"/>).
+    /// Initializes a <see cref="WeightRangeMapping"/> with the resulting range [<paramref name="toLowerBound"/>, <paramref name="toUpperBound"/>), assuming that weights processed by this mapping fall within [0, 1). <para/>
+    /// It is strongly recommended that the four-parameter constructor is used instead.
     /// </summary>
-    public WeightRangeMapping(double lowerBound, double upperBound)
+    public WeightRangeMapping(double toLowerBound, double toUpperBound)
     {
-        LowerBound = lowerBound;
-        UpperBound = upperBound;
+        FromLowerBound = 0;
+        FromUpperBound = 1;
+        ToLowerBound = toLowerBound;
+        ToUpperBound = toUpperBound;
+    }
+
+    /// <summary>
+    /// Initializes a <see cref="WeightRangeMapping"/> with the resulting range [<paramref name="toLowerBound"/>, <paramref name="toUpperBound"/>), assuming that the source range [<paramref name="fromLowerBound"/>, <paramref name="fromUpperBound"/>) is correct.
+    /// </summary>
+    public WeightRangeMapping(double fromLowerBound, double fromUpperBound, double toLowerBound, double toUpperBound)
+    {
+        ToLowerBound = toLowerBound;
+        ToUpperBound = toUpperBound;
+        FromLowerBound = fromLowerBound;
+        FromUpperBound = fromUpperBound;
     }
     public readonly void ApplyTo(Span<double> weights)
     {
-        double lowerBound = LowerBound;
-        double spanning = UpperBound - lowerBound;
-        for (int i = 0; i < weights.Length; i++)
+        double fromLowerBound = FromLowerBound;
+        double fromSpanning = FromUpperBound - fromLowerBound;
+        double toLowerBound = ToLowerBound;
+        double toSpanning = ToUpperBound - toLowerBound;
+        if (fromSpanning != 0)
         {
-            weights[i] = lowerBound + (weights[i] * spanning);
+            for (int i = 0; i < weights.Length; i++)
+            {
+                weights[i] = toLowerBound + ((weights[i] - fromLowerBound) / fromSpanning * toSpanning);
+            }
+        } else
+        {
+            double midpoint = (toLowerBound + ToUpperBound) * 0.5;
+            weights.Fill(midpoint);
         }
     }
 }
