@@ -3,7 +3,7 @@
 public readonly struct WeightCenterBiasing2D : IWeightDistributionPolicy
 {
     private readonly int[] _dimensions;
-    public WeightCenterBiasing2D(params Span<int> dimensions)
+    public WeightCenterBiasing2D(params int[] dimensions)
     {
         _dimensions = dimensions.ToArray();
     }

@@ -1,7 +1,7 @@
 ﻿# Randomness
 ![NuGet](https://img.shields.io/nuget/v/Randomness)
 
-WIP NuGet-Package containing randomization algorithms for .NET
+WIP NuGet-Package containing randomization algorithms
 
 ## Targets .NET 8
 
