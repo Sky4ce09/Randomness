@@ -12,7 +12,7 @@ internal class DistributingExamples
         BasicExample();
         IWeightDistributionExample();
         CustomImplementerExample();
-        TwoDimTensorExample();
+        TwoDimExample();
         NegativeWeightsExample();
     }
     static void BasicExample()
@@ -81,7 +81,7 @@ internal class DistributingExamples
         }
         End();
     }
-    static void TwoDimTensorExample()
+    static void TwoDimExample()
     {
         Console.WriteLine("\"2D Array\" example with integer and center biasing");
 
@@ -104,7 +104,7 @@ internal class DistributingExamples
         {
             Console.WriteLine("Trial " + (trial + 1));
             Array.Fill(target, 0);
-            distributor.DistributeApproximate(distributedValue, target, policies);
+            distributor.Distribute(distributedValue, target, policies);
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
