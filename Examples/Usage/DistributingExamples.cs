@@ -14,10 +14,11 @@ internal class DistributingExamples
         CustomImplementerExample();
         TwoDimExample();
         NegativeWeightsExample();
+        PointDistanceExample();
     }
     static void BasicExample()
     {
-        Console.WriteLine("1D Array example with integers");
+        Console.WriteLine("1D Array example");
 
         int trials = 5;
         int distributedValue = 15;
@@ -35,7 +36,7 @@ internal class DistributingExamples
     }
     static void IWeightDistributionExample()
     {
-        Console.WriteLine("IWeightDistributionPolicy example with doubles, mapping weights to a range");
+        Console.WriteLine("IWeightDistributionPolicy example, mapping weights to a range");
 
         int trials = 5;
         double distributedValue = 15.0D;
@@ -59,7 +60,7 @@ internal class DistributingExamples
     }
     static void CustomImplementerExample()
     {
-        Console.WriteLine("Custom IWeightDistributionPolicy implementer example with doubles, clamping weights to a range");
+        Console.WriteLine("Custom IWeightDistributionPolicy implementer example, clamping weights to a range");
 
         int trials = 5;
         double distributedValue = 15.0D;
@@ -83,7 +84,7 @@ internal class DistributingExamples
     }
     static void TwoDimExample()
     {
-        Console.WriteLine("\"2D Array\" example with integer and center biasing");
+        Console.WriteLine("\"2D Array\" example with center biasing");
 
         int trials = 2;
         int distributedValue = 20;
@@ -118,7 +119,7 @@ internal class DistributingExamples
     }
     static void NegativeWeightsExample()
     {
-        Console.WriteLine("Negative weights example with integers");
+        Console.WriteLine("Negative weights example");
 
         int trials = 5;
         int distributedValue = 15;
@@ -136,6 +137,36 @@ internal class DistributingExamples
         {
             Array.Fill(target, 0);
             distributor.DistributeApproximate(distributedValue, target, policy);
+            Console.WriteLine(string.Format("Trial {0}: {1}", trial + 1, string.Join(", ", target)));
+        }
+        End();
+    }
+    static void PointDistanceExample()
+    {
+        Console.WriteLine("Sign-agnosic point distance example");
+
+        int trials = 5;
+        int distributedValue = 15;
+        double toLowerBound = -1;
+        double toUpperBound = 1;
+        double targetMinDistance = 0.5;
+        double targetMaxDistance = 1;
+        int[] target = new int[5];
+        IWeightDistributionPolicy[] policies = [
+            new WeightRangeMapping(fromLowerBound: 0, fromUpperBound: 1, toLowerBound, toUpperBound),
+            new WeightPointDistancing(sourcePoint: 0, sourceMinDistance: 0, sourceMaxDistance: 1, targetPoint: 0, targetMinDistance, targetMaxDistance)
+            ];
+
+        Console.WriteLine("\nApplied IWeightDistributionPolicy implementers:");
+        Console.WriteLine(string.Format("WeightRangeMapping(0, 1, {0}, {1})", toLowerBound, toUpperBound));
+        Console.WriteLine(string.Format("WeightPointDistancing(0, 0, 1, 0, {0}, {1})", targetMinDistance, targetMaxDistance));
+
+        Console.WriteLine(string.Format("\nValue: {0} | Spread: {1}", distributedValue, target.Length));
+
+        for (int trial = 0; trial < trials; trial++)
+        {
+            Array.Fill(target, 0);
+            distributor.DistributeApproximate(distributedValue, target, policies);
             Console.WriteLine(string.Format("Trial {0}: {1}", trial + 1, string.Join(", ", target)));
         }
         End();

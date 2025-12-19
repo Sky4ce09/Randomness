@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Numerics;
+﻿using System.Numerics;
 
 namespace Randomness.Distributing;
 
@@ -477,7 +476,7 @@ public class RandomDistributor
                 {
                     throw new ArgumentOutOfRangeException(nameof(weights), "Weight distribution policies produced reserved infinity value.");
                 }
-                signsEncountered[Convert.ToInt32(weight < 0)] = true;
+                signsEncountered[weight < 0 ? 1 : 0] = true;
                 weightSum += weight;
             }
             if (weightSum == 0)
@@ -539,8 +538,8 @@ public class RandomDistributor
                 }
                 else
                 {
-                    lowestDemandIndices.TryPeek(out _, out double lowestQueuedDemand);
-                    if (demand >= lowestQueuedDemand) continue;
+                    lowestDemandIndices.TryPeek(out _, out double highestQueuedDemand);
+                    if (demand >= highestQueuedDemand) continue;
                     lowestDemandIndices.Dequeue();
                     lowestDemandIndices.Enqueue(i, demand);
                 }
