@@ -8,12 +8,12 @@ namespace Randomness.Distributing;
 /// </summary>
 public struct WeightPointDistancing : IWeightDistributionPolicy
 {
-    public double TargetPoint { get; set; }
-    public double TargetMinDistance { get; set; }
-    public double TargetMaxDistance { get; set; }
     public double SourcePoint { get; set; }
     public double SourceMinDistance { get; set; }
     public double SourceMaxDistance { get; set; }
+    public double TargetPoint { get; set; }
+    public double TargetMinDistance { get; set; }
+    public double TargetMaxDistance { get; set; }
 
     /// <summary>
     /// Initializes a new <see cref="WeightPointDistancing"/> with points set to 0 and distance ranges set to [0, 1). <para/>

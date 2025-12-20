@@ -1,7 +1,7 @@
 ﻿# Randomness
 ![NuGet](https://img.shields.io/nuget/v/Randomness)
 
-WIP NuGet-Package containing randomization algorithms
+WIP library containing randomization algorithms
 
 ## Targets .NET 8
 
@@ -26,6 +26,8 @@ int[] target = new int[20];
 
 var distributor = new RandomDistributor();
 distributor.Distribute(value, target);
+
+// the sum of all numbers in the target array is now 100
 ```
 
 ### Authors
@@ -34,4 +36,4 @@ Sky4ce09
 
 ### Links
 
-[GitHub](https://github.com/Sky4ce09/Randomness)
+[GitHub Wiki](https://github.com/Sky4ce09/Randomness/wiki)
