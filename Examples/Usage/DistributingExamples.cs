@@ -29,7 +29,7 @@ internal class DistributingExamples
         for (int trial = 0; trial < trials; trial++)
         {
             Array.Fill(target, 0);
-            distributor.DistributeApproximate(distributedValue, target);
+            distributor.Distribute(distributedValue, target);
             Console.WriteLine(string.Format("Trial {0}: {1}", trial + 1, string.Join(", ", target)));
         }
         End();
@@ -143,7 +143,7 @@ internal class DistributingExamples
     }
     static void PointDistanceExample()
     {
-        Console.WriteLine("Sign-agnosic point distance example");
+        Console.WriteLine("Sign-compatible point distance example");
 
         int trials = 5;
         int distributedValue = 15;
