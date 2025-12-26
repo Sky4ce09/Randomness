@@ -16,5 +16,9 @@ internal class Program
         Console.WriteLine("Examples: Randomness.Distributing\n");
         Console.ForegroundColor = ConsoleColor.White;
         DistributingExamples.RunExamples();
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("Examples: Randomness.Sampling\n");
+        Console.ForegroundColor = ConsoleColor.White;
+        SamplingExamples.RunExamples();
     }
 }

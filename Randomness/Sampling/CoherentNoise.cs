@@ -63,9 +63,10 @@ public class CoherentNoise : ISampler
     /// <param name="x">The width argument.</param>
     /// <param name="y">The height argument. Leave unspecified or set to 0 for 1D sampling.</param>
     /// <param name="z">The depth argument. Leave unspecified or set to 0 for 2D sampling.</param>
-    public void SetDimensions(float x, float y = 0.0f, float z = 0.0f)
+    public CoherentNoise SetDimensions(float x, float y = 0.0f, float z = 0.0f)
     {
         NoiseDimensions = new Vector3(x, y, z);
+        return this;
     }
 
     /// <summary>
@@ -74,9 +75,10 @@ public class CoherentNoise : ISampler
     /// <param name="x"></param>
     /// <param name="y"></param>
     /// <param name="z"></param>
-    public void SetScale(float x, float y = 1.0f, float z = 1.0f)
+    public CoherentNoise SetScale(float x, float y = 1.0f, float z = 1.0f)
     {
         NoiseScalingFactors = new Vector3(x, y, z);
+        return this;
     }
 
     /// <summary>
@@ -85,18 +87,20 @@ public class CoherentNoise : ISampler
     /// <param name="x">The x-coordinate for the weight generation algorithm to start sampling from. (1D, 2D, 3D)</param>
     /// <param name="y">The y-coordinate for the weight generation algorithm to start sampling from. (2D, 3D)</param>
     /// <param name="z">The z-coordinate for the weight generation algorithm to start sampling from. (3D)</param>
-    public void SetPosition(float x, float y = 0.0f, float z = 0.0f)
+    public CoherentNoise SetPosition(float x, float y = 0.0f, float z = 0.0f)
     {
         NoiseSamplingPosition = new Vector3(x, y, z);
+        return this;
     }
 
     /// <summary>
     /// Sets a FastNoiseLite supported noise type.
     /// </summary>
     /// <param name="noiseType">The noise type to sample from.</param>
-    public void SetNoiseType(FastNoiseType noiseType)
+    public CoherentNoise SetNoiseType(FastNoiseType noiseType)
     {
         NoiseGenerator.SetNoiseType((FastNoiseLite.NoiseType)noiseType);
+        return this;
     }
 
     /// <summary>

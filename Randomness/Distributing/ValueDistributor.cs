@@ -14,65 +14,79 @@ namespace Randomness.Distributing;
 /// </remarks>
 public readonly struct ValueDistributor : IValueDistributor
 {
-    public void Distribute(int value, Span<double> weights, Span<int> target)
+    public void Distribute<T>(T value, Span<double> weights, Span<T> target) where T : unmanaged, INumber<T>
     {
         ValidateInputs(weights, target);
         double weightSum = ValidateAndSumWeights(weights);
-        DistributorCore.DistrEnd(value, weights, weightSum, target);
+        switch (Type.GetTypeCode(typeof(T)))
+        {
+            case TypeCode.Int32:
+                DistributorCore.DistrEnd(int.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, int>(target));
+                break;
+            case TypeCode.Int64:
+                DistributorCore.DistrEnd(long.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, long>(target));
+                break;
+            case TypeCode.Single:
+                DistributorCore.DistrEnd(float.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, float>(target));
+                break;
+            case TypeCode.Double:
+                DistributorCore.DistrEnd(double.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, double>(target));
+                break;
+            case TypeCode.Decimal:
+                DistributorCore.DistrEnd(decimal.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, decimal>(target));
+                break;
+            default:
+                if (typeof(T) == typeof(nint))
+                {
+                    DistributorCore.DistrEnd(nint.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, nint>(target));
+                }
+                else if (typeof(T) == typeof(NFloat))
+                {
+                    DistributorCore.DistrEnd(NFloat.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, NFloat>(target));
+                }
+                else
+                {
+                    throw new NotSupportedException("Unsupported numeric type.");
+                }
+                break;
+        }
     }
-    public void DistributeApproximate(int value, Span<double> weights, Span<int> target)
+    public void DistributeApproximate<T>(T value, Span<double> weights, Span<T> target) where T : unmanaged, INumber<T>
     {
         ValidateInputs(weights, target);
         double weightSum = ValidateAndSumWeights(weights);
-        DistributorCore.DistrEndApprox(value, weights, weightSum, target);
-    }
-    public void Distribute(long value, Span<double> weights, Span<long> target)
-    {
-        ValidateInputs(weights, target);
-        double weightSum = ValidateAndSumWeights(weights);
-        DistributorCore.DistrEnd(value, weights, weightSum, target);
-    }
-    public void DistributeApproximate(long value, Span<double> weights, Span<long> target)
-    {
-        ValidateInputs(weights, target);
-        double weightSum = ValidateAndSumWeights(weights);
-        DistributorCore.DistrEndApprox(value, weights, weightSum, target);
-    }
-    public void Distribute(nint value, Span<double> weights, Span<nint> target)
-    {
-        ValidateInputs(weights, target);
-        double weightSum = ValidateAndSumWeights(weights);
-        DistributorCore.DistrEnd(value, weights, weightSum, target);
-    }
-    public void DistributeApproximate(nint value, Span<double> weights, Span<nint> target)
-    {
-        ValidateInputs(weights, target);
-        double weightSum = ValidateAndSumWeights(weights);
-        DistributorCore.DistrEndApprox(value, weights, weightSum, target);
-    }
-    public void Distribute(float value, Span<double> weights, Span<float> target)
-    {
-        ValidateInputs(weights, target);
-        double weightSum = ValidateAndSumWeights(weights);
-        DistributorCore.DistrEnd(value, weights, weightSum, target);
-    }
-    public void Distribute(double value, Span<double> weights, Span<double> target)
-    {
-        ValidateInputs(weights, target);
-        double weightSum = ValidateAndSumWeights(weights);
-        DistributorCore.DistrEnd(value, weights, weightSum, target);
-    }
-    public void Distribute(decimal value, Span<double> weights, Span<decimal> target)
-    {
-        ValidateInputs(weights, target);
-        double weightSum = ValidateAndSumWeights(weights);
-        DistributorCore.DistrEnd(value, weights, weightSum, target);
-    }
-    public void Distribute(NFloat value, Span<double> weights, Span<NFloat> target)
-    {
-        ValidateInputs(weights, target);
-        double weightSum = ValidateAndSumWeights(weights);
-        DistributorCore.DistrEnd(value, weights, weightSum, target);
+        switch (Type.GetTypeCode(typeof(T)))
+        {
+            case TypeCode.Int32:
+                DistributorCore.DistrEndApprox(int.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, int>(target));
+                break;
+            case TypeCode.Int64:
+                DistributorCore.DistrEndApprox(long.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, long>(target));
+                break;
+            case TypeCode.Single:
+                DistributorCore.DistrEnd(float.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, float>(target));
+                break;
+            case TypeCode.Double:
+                DistributorCore.DistrEnd(double.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, double>(target));
+                break;
+            case TypeCode.Decimal:
+                DistributorCore.DistrEnd(decimal.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, decimal>(target));
+                break;
+            default:
+                if (typeof(T) == typeof(nint))
+                {
+                    DistributorCore.DistrEndApprox(nint.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, nint>(target));
+                }
+                else if (typeof(T) == typeof(NFloat))
+                {
+                    DistributorCore.DistrEnd(NFloat.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, NFloat>(target));
+                }
+                else
+                {
+                    throw new NotSupportedException("Unsupported numeric type.");
+                }
+                break;
+        }
     }
     private void ValidateInputs<T>(Span<double> weights, Span<T> target) where T : INumber<T>
     {

@@ -28,38 +28,7 @@ public class ConfigurableDistributor
         Span<double> weights = target.Length <= 256 ? stackalloc double[target.Length] : new double[target.Length];
         Sampler.AddSample(weights);
         foreach (IWeightDistributionPolicy weightModifier in weightModifiers) weightModifier.ApplyTo(weights);
-        switch (Type.GetTypeCode(typeof(T)))
-        {
-            case TypeCode.Int32:
-                Distributor.Distribute(int.CreateTruncating(value), weights, MemoryMarshal.Cast<T, int>(target));
-                break;
-            case TypeCode.Int64:
-                Distributor.Distribute(long.CreateTruncating(value), weights, MemoryMarshal.Cast<T, long>(target));
-                break;
-            case TypeCode.Single:
-                Distributor.Distribute(float.CreateTruncating(value), weights, MemoryMarshal.Cast<T, float>(target));
-                break;
-            case TypeCode.Double:
-                Distributor.Distribute(double.CreateTruncating(value), weights, MemoryMarshal.Cast<T, double>(target));
-                break;
-            case TypeCode.Decimal:
-                Distributor.Distribute(decimal.CreateTruncating(value), weights, MemoryMarshal.Cast<T, decimal>(target));
-                break;
-            default:
-                if (typeof(T) == typeof(nint))
-                {
-                    Distributor.Distribute(nint.CreateTruncating(value), weights, MemoryMarshal.Cast<T, nint>(target));
-                }
-                else if (typeof(T) == typeof(NFloat))
-                {
-                    Distributor.Distribute(NFloat.CreateTruncating(value), weights, MemoryMarshal.Cast<T, NFloat>(target));
-                }
-                else
-                {
-                    throw new NotSupportedException();
-                }
-                break;
-        }
+        Distributor.Distribute(value, weights, target);
     }
 
     /// <summary>
@@ -79,33 +48,6 @@ public class ConfigurableDistributor
         Span<double> weights = target.Length <= 256 ? stackalloc double[target.Length] : new double[target.Length];
         Sampler.AddSample(weights);
         foreach (IWeightDistributionPolicy weightModifier in weightModifiers) weightModifier.ApplyTo(weights);
-        switch (Type.GetTypeCode(typeof(T)))
-        {
-            case TypeCode.Int32:
-                Distributor.DistributeApproximate(int.CreateTruncating(value), weights, MemoryMarshal.Cast<T, int>(target));
-                break;
-            case TypeCode.Int64:
-                Distributor.DistributeApproximate(long.CreateTruncating(value), weights, MemoryMarshal.Cast<T, long>(target));
-                break;
-            case TypeCode.Single:
-                Distributor.Distribute(float.CreateTruncating(value), weights, MemoryMarshal.Cast<T, double>(target));
-                break;
-            case TypeCode.Double:
-                Distributor.Distribute(double.CreateTruncating(value), weights, MemoryMarshal.Cast<T, double>(target));
-                break;
-            case TypeCode.Decimal:
-                Distributor.Distribute(decimal.CreateTruncating(value), weights, MemoryMarshal.Cast<T, decimal>(target));
-                break;
-            default:
-                if (typeof(T) == typeof(nint))
-                {
-                    Distributor.DistributeApproximate(nint.CreateTruncating(value), weights, MemoryMarshal.Cast<T, nint>(target));
-                }
-                else if (typeof(T) == typeof(NFloat))
-                {
-                    Distributor.Distribute(NFloat.CreateTruncating(value), weights, MemoryMarshal.Cast<T, NFloat>(target));
-                }
-                break;
-        }
+        Distributor.DistributeApproximate(value, weights, target);
     }
 }

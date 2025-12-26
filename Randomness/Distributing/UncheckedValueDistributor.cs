@@ -17,105 +17,87 @@ namespace Randomness.Distributing;
 /// </remarks>
 public readonly struct UncheckedValueDistributor : IValueDistributor
 {
-    public void Distribute(int value, Span<double> weights, double weightSum, Span<int> target)
+    public void Distribute<T>(T value, Span<double> weights, double weightSum, Span<T> target) where T : unmanaged, INumber<T>
     {
         if (weightSum == 0) DistributorCore.ZeroWeightSum(weights, out weightSum);
-        DistributorCore.DistrEnd(value, weights, weightSum, target);
+        switch (Type.GetTypeCode(typeof(T)))
+        {
+            case TypeCode.Int32:
+                DistributorCore.DistrEnd(int.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, int>(target));
+                break;
+            case TypeCode.Int64:
+                DistributorCore.DistrEnd(long.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, long>(target));
+                break;
+            case TypeCode.Single:
+                DistributorCore.DistrEnd(float.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, float>(target));
+                break;
+            case TypeCode.Double:
+                DistributorCore.DistrEnd(double.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, double>(target));
+                break;
+            case TypeCode.Decimal:
+                DistributorCore.DistrEnd(decimal.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, decimal>(target));
+                break;
+            default:
+                if (typeof(T) == typeof(nint))
+                {
+                    DistributorCore.DistrEnd(nint.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, nint>(target));
+                }
+                else if (typeof(T) == typeof(NFloat))
+                {
+                    DistributorCore.DistrEnd(NFloat.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, NFloat>(target));
+                }
+                else
+                {
+                    throw new NotSupportedException("Unsupported numeric type.");
+                }
+                break;
+        }
     }
-    public void Distribute(int value, Span<double> weights, Span<int> target)
+    public void Distribute<T>(T value, Span<double> weights, Span<T> target) where T : unmanaged, INumber<T>
     {
         double weightSum = SumWeights(weights);
         Distribute(value, weights, weightSum, target);
     }
-    public void DistributeApproximate(int value, Span<double> weights, double weightSum, Span<int> target)
+    public void DistributeApproximate<T>(T value, Span<double> weights, double weightSum, Span<T> target) where T : unmanaged, INumber<T>
     {
         if (weightSum == 0) DistributorCore.ZeroWeightSum(weights, out weightSum);
-        DistributorCore.DistrEndApprox(value, weights, weightSum, target);
+        switch (Type.GetTypeCode(typeof(T)))
+        {
+            case TypeCode.Int32:
+                DistributorCore.DistrEnd(int.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, int>(target));
+                break;
+            case TypeCode.Int64:
+                DistributorCore.DistrEnd(long.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, long>(target));
+                break;
+            case TypeCode.Single:
+                DistributorCore.DistrEnd(float.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, float>(target));
+                break;
+            case TypeCode.Double:
+                DistributorCore.DistrEnd(double.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, double>(target));
+                break;
+            case TypeCode.Decimal:
+                DistributorCore.DistrEnd(decimal.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, decimal>(target));
+                break;
+            default:
+                if (typeof(T) == typeof(nint))
+                {
+                    DistributorCore.DistrEnd(nint.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, nint>(target));
+                }
+                else if (typeof(T) == typeof(NFloat))
+                {
+                    DistributorCore.DistrEnd(NFloat.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, NFloat>(target));
+                }
+                else
+                {
+                    throw new NotSupportedException("Unsupported numeric type.");
+                }
+                break;
+        }
     }
-    public void DistributeApproximate(int value, Span<double> weights, Span<int> target)
+    public void DistributeApproximate<T>(T value, Span<double> weights, Span<T> target) where T : unmanaged, INumber<T>
     {
         double weightSum = SumWeights(weights);
         DistributeApproximate(value, weights, weightSum, target);
-    }
-    public void Distribute(long value, Span<double> weights, double weightSum, Span<long> target)
-    {
-        if (weightSum == 0) DistributorCore.ZeroWeightSum(weights, out weightSum);
-        DistributorCore.DistrEnd(value, weights, weightSum, target);
-    }
-    public void Distribute(long value, Span<double> weights, Span<long> target)
-    {
-        double weightSum = SumWeights(weights);
-        Distribute(value, weights, weightSum, target);
-    }
-    public void DistributeApproximate(long value, Span<double> weights, double weightSum, Span<long> target)
-    {
-        if (weightSum == 0) DistributorCore.ZeroWeightSum(weights, out weightSum);
-        DistributorCore.DistrEndApprox(value, weights, weightSum, target);
-    }
-    public void DistributeApproximate(long value, Span<double> weights, Span<long> target)
-    {
-        double weightSum = SumWeights(weights);
-        DistributeApproximate(value, weights, weightSum, target);
-    }
-    public void Distribute(nint value, Span<double> weights, double weightSum, Span<nint> target)
-    {
-        if (weightSum == 0) DistributorCore.ZeroWeightSum(weights, out weightSum);
-        DistributorCore.DistrEnd(value, weights, weightSum, target);
-    }
-    public void Distribute(nint value, Span<double> weights, Span<nint> target)
-    {
-        double weightSum = SumWeights(weights);
-        Distribute(value, weights, weightSum, target);
-    }
-    public void DistributeApproximate(nint value, Span<double> weights, double weightSum, Span<nint> target)
-    {
-        if (weightSum == 0) DistributorCore.ZeroWeightSum(weights, out weightSum);
-        DistributorCore.DistrEndApprox(value, weights, weightSum, target);
-    }
-    public void DistributeApproximate(nint value, Span<double> weights, Span<nint> target)
-    {
-        double weightSum = SumWeights(weights);
-        DistributeApproximate(value, weights, weightSum, target);
-    }
-    public void Distribute(float value, Span<double> weights, double weightSum, Span<float> target)
-    {
-        if (weightSum == 0) DistributorCore.ZeroWeightSum(weights, out weightSum);
-        DistributorCore.DistrEnd(value, weights, weightSum, target);
-    }
-    public void Distribute(float value, Span<double> weights, Span<float> target)
-    {
-        double weightSum = SumWeights(weights);
-        Distribute(value, weights, weightSum, target);
-    }
-    public void Distribute(double value, Span<double> weights, double weightSum, Span<double> target)
-    {
-        if (weightSum == 0) DistributorCore.ZeroWeightSum(weights, out weightSum);
-        DistributorCore.DistrEnd(value, weights, weightSum, target);
-    }
-    public void Distribute(double value, Span<double> weights, Span<double> target)
-    {
-        double weightSum = SumWeights(weights);
-        Distribute(value, weights, weightSum, target);
-    }
-    public void Distribute(decimal value, Span<double> weights, double weightSum, Span<decimal> target)
-    {
-        if (weightSum == 0) DistributorCore.ZeroWeightSum(weights, out weightSum);
-        DistributorCore.DistrEnd(value, weights, weightSum, target);
-    }
-    public void Distribute(decimal value, Span<double> weights, Span<decimal> target)
-    {
-        double weightSum = SumWeights(weights);
-        Distribute(value, weights, weightSum, target);
-    }
-    public void Distribute(NFloat value, Span<double> weights, double weightSum, Span<NFloat> target)
-    {
-        if (weightSum == 0) DistributorCore.ZeroWeightSum(weights, out weightSum);
-        DistributorCore.DistrEnd(value, weights, weightSum, target);
-    }
-    public void Distribute(NFloat value, Span<double> weights, Span<NFloat> target)
-    {
-        double weightSum = SumWeights(weights);
-        Distribute(value, weights, weightSum, target);
     }
     private static double SumWeights(Span<double> weights)
     {
