@@ -31,7 +31,7 @@ distributor.Distribute(value, target);
 // the sum of all numbers in the target array is now 100
 ```
 
-#### [Randomness.Sampling](https://github.com/Sky4ce09/Randomness/blob/master/Examples/Usage/DistributingExamples.cs)
+#### [Randomness.Sampling](https://github.com/Sky4ce09/Randomness/blob/master/Examples/Usage/SamplingExamples.cs)
 
 ```cs
 int width = 20;
