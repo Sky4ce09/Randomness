@@ -64,10 +64,10 @@ public readonly struct UncheckedValueDistributor : IValueDistributor
         switch (Type.GetTypeCode(typeof(T)))
         {
             case TypeCode.Int32:
-                DistributorCore.DistrEnd(int.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, int>(target));
+                DistributorCore.DistrEndApprox(int.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, int>(target));
                 break;
             case TypeCode.Int64:
-                DistributorCore.DistrEnd(long.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, long>(target));
+                DistributorCore.DistrEndApprox(long.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, long>(target));
                 break;
             case TypeCode.Single:
                 DistributorCore.DistrEnd(float.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, float>(target));
@@ -81,7 +81,7 @@ public readonly struct UncheckedValueDistributor : IValueDistributor
             default:
                 if (typeof(T) == typeof(nint))
                 {
-                    DistributorCore.DistrEnd(nint.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, nint>(target));
+                    DistributorCore.DistrEndApprox(nint.CreateTruncating(value), weights, weightSum, MemoryMarshal.Cast<T, nint>(target));
                 }
                 else if (typeof(T) == typeof(NFloat))
                 {
