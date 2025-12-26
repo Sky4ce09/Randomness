@@ -17,7 +17,6 @@
     <Description>WIP library containing randomization algorithms</Description>
     <Copyright>(C) 2026</Copyright>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageReleaseNotes>unchecked value distributor patch</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
