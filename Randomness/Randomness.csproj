@@ -6,16 +6,16 @@
     <Nullable>enable</Nullable>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>0.1.2</Version>
+    <Version>0.2.0</Version>
     <Authors>Sky4ce09</Authors>
     <Title>Randomness</Title>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <IncludeSymbols>False</IncludeSymbols>
     <PackageProjectUrl>https://github.com/Sky4ce09/Randomness</PackageProjectUrl>
-    <PackageTags>random; distribute</PackageTags>
+    <PackageTags>random; distribute; sample; noise</PackageTags>
     <SignAssembly>False</SignAssembly>
     <Description>WIP library containing randomization algorithms</Description>
-    <Copyright>(C) 2025</Copyright>
+    <Copyright>(C) 2026</Copyright>
     <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 

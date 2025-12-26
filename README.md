@@ -13,12 +13,25 @@ dotnet add package Randomness
 
 ### Includes solutions for...
 
-* Weighted distribution of number values across multiple other numbers
+* Gathering large samples of coherent noise (using FastNoiseLite) or white noise
+* Weighted distribution of number values across multiple other numbers using said noise
 * More to be added!
 
 ### Usage Examples
 
 #### [Randomness.Distributing](https://github.com/Sky4ce09/Randomness/blob/master/Examples/Usage/DistributingExamples.cs)
+
+```cs
+int value = 100;
+int[] target = new int[20];
+
+var distributor = new RandomDistributor();
+distributor.Distribute(value, target);
+
+// the sum of all numbers in the target array is now 100
+```
+
+#### [Randomness.Sampling](https://github.com/Sky4ce09/Randomness/blob/master/Examples/Usage/DistributingExamples.cs)
 
 ```cs
 int value = 100;

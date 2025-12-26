@@ -1,9 +1,11 @@
 ﻿using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Randomness.Distributing;
 
 internal static class DistributorCore
 {
+
     internal static void DistributeRemainder<T>(Span<T> targetValues, Span<T> distributedValues, Span<double> weights, int remainder) where T : INumber<T>
     {
         // remainder originates solely from truncation, so each index should only receive at most one additional incrementation
@@ -146,6 +148,16 @@ internal static class DistributorCore
             target[i] += (nint)Math.Round(doubleValue * weights[i] / weightSum);
         }
     }
+    internal static void DistrEnd(float value, Span<double> weights, double weightSum, Span<float> target)
+    {
+        float distributed = 0;
+        for (int i = 0; i < weights.Length; i++)
+        {
+            float share = value * (float)weights[i] / (float)weightSum;
+            target[i] += share;
+            distributed += share;
+        }
+    }
     internal static void DistrEnd(double value, Span<double> weights, double weightSum, Span<double> target)
     {
         double distributed = 0;
@@ -162,6 +174,16 @@ internal static class DistributorCore
         for (int i = 0; i < weights.Length; i++)
         {
             decimal share = value * (decimal)weights[i] / (decimal)weightSum;
+            target[i] += share;
+            distributed += share;
+        }
+    }
+    internal static void DistrEnd(NFloat value, Span<double> weights, double weightSum, Span<NFloat> target)
+    {
+        NFloat distributed = 0;
+        for (int i = 0; i < weights.Length; i++)
+        {
+            NFloat share = value * (NFloat)weights[i] / (NFloat)weightSum;
             target[i] += share;
             distributed += share;
         }

@@ -4,17 +4,21 @@ namespace Examples.Usage;
 
 internal class DistributingExamples
 {
-    static RandomDistributor distributor;
     public static void RunExamples()
     {
-        distributor = new RandomDistributor();
-
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("RandomDistributor class\n");
+        Console.ForegroundColor = ConsoleColor.White;
         BasicExample();
         IWeightDistributionExample();
         CustomImplementerExample();
         TwoDimExample();
         NegativeWeightsExample();
         PointDistanceExample();
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("NoiseDistributor class\n");
+        Console.ForegroundColor = ConsoleColor.White;
+        TwoDimNoiseExample();
     }
     static void BasicExample()
     {
@@ -29,7 +33,7 @@ internal class DistributingExamples
         for (int trial = 0; trial < trials; trial++)
         {
             Array.Fill(target, 0);
-            distributor.Distribute(distributedValue, target);
+            new RandomDistributor().Distribute<int>(distributedValue, target);
             Console.WriteLine(string.Format("Trial {0}: {1}", trial + 1, string.Join(", ", target)));
         }
         End();
@@ -53,7 +57,7 @@ internal class DistributingExamples
         for (int trial = 0; trial < trials; trial++)
         {
             Array.Fill(target, 0.0D);
-            distributor.Distribute(distributedValue, target, policy);
+            new RandomDistributor().Distribute<double>(distributedValue, target, policy);
             Console.WriteLine(string.Format("Trial {0}: {1}", trial + 1, string.Join(", ", target)));
         }
         End();
@@ -77,7 +81,7 @@ internal class DistributingExamples
         for (int trial = 0; trial < trials; trial++)
         {
             Array.Fill(target, 0.0D);
-            distributor.Distribute(distributedValue, target, policy);
+            new RandomDistributor().Distribute<double>(distributedValue, target, policy);
             Console.WriteLine(string.Format("Trial {0}: {1}", trial + 1, string.Join(", ", target)));
         }
         End();
@@ -87,13 +91,16 @@ internal class DistributingExamples
         Console.WriteLine("\"2D Array\" example with center biasing");
 
         int trials = 2;
-        int distributedValue = 20;
+        int distributedValue = 30;
         int width = 7;
         int height = 7;
         double toLowerBound = 0.6;
         double toUpperBound = 1;
         int[] target = new int[width * height];
-        IWeightDistributionPolicy[] policies = [new WeightRangeMapping(fromLowerBound: 0, fromUpperBound: 1, toLowerBound, toUpperBound), new WeightCenterBiasing2D(width, height)];
+        IWeightDistributionPolicy[] policies = [
+            new WeightRangeMapping(fromLowerBound: 0, fromUpperBound: 1, toLowerBound, toUpperBound),
+            new WeightCenterBiasing2D(width, height)
+            ];
 
         Console.WriteLine("\nApplied IWeightDistributionPolicy implementers:");
         Console.WriteLine(string.Format("WeightRangeMapping(0, 1, {0}, {1})", toLowerBound, toUpperBound));
@@ -105,7 +112,7 @@ internal class DistributingExamples
         {
             Console.WriteLine("Trial " + (trial + 1));
             Array.Fill(target, 0);
-            distributor.Distribute(distributedValue, target, policies);
+            new RandomDistributor().Distribute<int>(distributedValue, target, policies);
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
@@ -136,7 +143,7 @@ internal class DistributingExamples
         for (int trial = 0; trial < trials; trial++)
         {
             Array.Fill(target, 0);
-            distributor.DistributeApproximate(distributedValue, target, policy);
+            new RandomDistributor().DistributeApproximate<int>(distributedValue, target, policy);
             Console.WriteLine(string.Format("Trial {0}: {1}", trial + 1, string.Join(", ", target)));
         }
         End();
@@ -166,8 +173,39 @@ internal class DistributingExamples
         for (int trial = 0; trial < trials; trial++)
         {
             Array.Fill(target, 0);
-            distributor.DistributeApproximate(distributedValue, target, policies);
+            new RandomDistributor().DistributeApproximate<int>(distributedValue, target, policies);
             Console.WriteLine(string.Format("Trial {0}: {1}", trial + 1, string.Join(", ", target)));
+        }
+        End();
+    }
+    static void TwoDimNoiseExample()
+    {
+        Console.WriteLine("\"2D Array\" example using FastNoiseLite with weights sampled from 2D simplex noise");
+        Console.WriteLine("(other noise types are also supported)");
+        Console.WriteLine("I am not sure why you would use noise generated weights for your distribution, but it's an option now");
+
+        int width = 12;
+        int height = 12;
+        double toLowerBound = 0;
+        double toUpperBound = 1;
+        IWeightDistributionPolicy policy = new WeightRangeMapping(fromLowerBound: -1, fromUpperBound: 1, toLowerBound, toUpperBound);
+
+        Console.WriteLine("\nApplied IWeightDistributionPolicy implementers:");
+        Console.WriteLine(string.Format("WeightRangeMapping(-1, 1, {0}, {1})", toLowerBound, toUpperBound));
+
+        int distributedValue = 400;
+        int[] target = new int[width * height];
+
+        Console.WriteLine(string.Format("\nValue: {0} | Spread: {1}", distributedValue, target.Length));
+
+        new NoiseDistributor().SetDimensions(width, height).SetScale(0.05f, 0.05f, 0.05f).Distribute(distributedValue, target, policy);
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                Console.Write(target[y * width + x] + ", ");
+            }
+            Console.WriteLine();
         }
         End();
     }

@@ -1,16 +1,18 @@
 ﻿using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Randomness.Distributing;
 
 // always iterates over weights once to validate weights, so summing weights even if the user precomputes is very minimal overhead and fine
 
 /// <summary>
-/// An interfacable rendition of the value distribution backbone for all weight-generating distributors. Can be used to pass one's own weights through the distribution algorithms.
+/// The value distribution backbone for all weight-generating distributors. Can be used to pass one's own weights through the distribution algorithms. <para/>
+/// Throws useful <see cref="ArgumentException"/>s and <see cref="ArgumentOutOfRangeException"/>s when used poorly.
 /// </summary>
 /// <remarks>
 /// None of this struct's public methods are thread-safe.
 /// </remarks>
-public readonly struct Distributor
+public readonly struct ValueDistributor : IValueDistributor
 {
     public void Distribute(int value, Span<double> weights, Span<int> target)
     {
@@ -18,23 +20,11 @@ public readonly struct Distributor
         double weightSum = ValidateAndSumWeights(weights);
         DistributorCore.DistrEnd(value, weights, weightSum, target);
     }
-    public int[] Distribute(int value, Span<double> weights)
-    {
-        int[] target = new int[weights.Length];
-        Distribute(value, weights, target);
-        return target;
-    }
     public void DistributeApproximate(int value, Span<double> weights, Span<int> target)
     {
         ValidateInputs(weights, target);
         double weightSum = ValidateAndSumWeights(weights);
         DistributorCore.DistrEndApprox(value, weights, weightSum, target);
-    }
-    public int[] DistributeApproximate(int value, Span<double> weights)
-    {
-        int[] target = new int[weights.Length];
-        DistributeApproximate(value, weights, target);
-        return target;
     }
     public void Distribute(long value, Span<double> weights, Span<long> target)
     {
@@ -42,23 +32,11 @@ public readonly struct Distributor
         double weightSum = ValidateAndSumWeights(weights);
         DistributorCore.DistrEnd(value, weights, weightSum, target);
     }
-    public long[] Distribute(long value, Span<double> weights)
-    {
-        long[] target = new long[weights.Length];
-        Distribute(value, weights, target);
-        return target;
-    }
     public void DistributeApproximate(long value, Span<double> weights, Span<long> target)
     {
         ValidateInputs(weights, target);
         double weightSum = ValidateAndSumWeights(weights);
         DistributorCore.DistrEndApprox(value, weights, weightSum, target);
-    }
-    public long[] DistributeApproximate(long value, Span<double> weights)
-    {
-        long[] target = new long[weights.Length];
-        DistributeApproximate(value, weights, target);
-        return target;
     }
     public void Distribute(nint value, Span<double> weights, Span<nint> target)
     {
@@ -66,23 +44,17 @@ public readonly struct Distributor
         double weightSum = ValidateAndSumWeights(weights);
         DistributorCore.DistrEnd(value, weights, weightSum, target);
     }
-    public nint[] Distribute(nint value, Span<double> weights)
-    {
-        nint[] target = new nint[weights.Length];
-        Distribute(value, weights, target);
-        return target;
-    }
     public void DistributeApproximate(nint value, Span<double> weights, Span<nint> target)
     {
         ValidateInputs(weights, target);
         double weightSum = ValidateAndSumWeights(weights);
         DistributorCore.DistrEndApprox(value, weights, weightSum, target);
     }
-    public nint[] DistributeApproximate(nint value, Span<double> weights)
+    public void Distribute(float value, Span<double> weights, Span<float> target)
     {
-        nint[] target = new nint[weights.Length];
-        DistributeApproximate(value, weights, target);
-        return target;
+        ValidateInputs(weights, target);
+        double weightSum = ValidateAndSumWeights(weights);
+        DistributorCore.DistrEnd(value, weights, weightSum, target);
     }
     public void Distribute(double value, Span<double> weights, Span<double> target)
     {
@@ -90,23 +62,17 @@ public readonly struct Distributor
         double weightSum = ValidateAndSumWeights(weights);
         DistributorCore.DistrEnd(value, weights, weightSum, target);
     }
-    public double[] Distribute(double value, Span<double> weights)
-    {
-        double[] target = new double[weights.Length];
-        Distribute(value, weights, target);
-        return target;
-    }
     public void Distribute(decimal value, Span<double> weights, Span<decimal> target)
     {
         ValidateInputs(weights, target);
         double weightSum = ValidateAndSumWeights(weights);
         DistributorCore.DistrEnd(value, weights, weightSum, target);
     }
-    public decimal[] Distribute(decimal value, Span<double> weights)
+    public void Distribute(NFloat value, Span<double> weights, Span<NFloat> target)
     {
-        decimal[] target = new decimal[weights.Length];
-        Distribute(value, weights, target);
-        return target;
+        ValidateInputs(weights, target);
+        double weightSum = ValidateAndSumWeights(weights);
+        DistributorCore.DistrEnd(value, weights, weightSum, target);
     }
     private void ValidateInputs<T>(Span<double> weights, Span<T> target) where T : INumber<T>
     {
@@ -117,6 +83,7 @@ public readonly struct Distributor
     private double ValidateAndSumWeights(Span<double> weights)
     {
         double weightSum = 0;
+        double largestAbsWeight = double.NegativeInfinity;
         Span<bool> signsEncountered = stackalloc bool[] { false, false }; // positive, negative
 
         for (int i = 0; i < weights.Length; i++)
@@ -131,6 +98,11 @@ public readonly struct Distributor
             else if (weight == double.PositiveInfinity || weight == double.NegativeInfinity)
             {
                 throw new ArgumentOutOfRangeException(nameof(weights), "Weight distribution policies produced reserved infinity value.");
+            }
+            else
+            {
+                double absWeight = Math.Abs(weight);
+                if (absWeight > largestAbsWeight) largestAbsWeight = absWeight;
             }
             signsEncountered[weight < 0 ? 1 : 0] = true;
             weightSum += weight;
@@ -147,7 +119,7 @@ public readonly struct Distributor
             }
             else
             {
-                throw new DivideByZeroException("Weight sum cannot be zero when weights can have both signs.");
+                weightSum = Math.Max(double.Epsilon * 2.1D, double.Epsilon * largestAbsWeight * 2.1D); // i hope this prevents infinities
             }
         }
         return weightSum;
